@@ -1,0 +1,22 @@
+{
+  "name": "prof",
+  "version": "0.0.1",
+  "description": "Prof is a Planet Nine miniservice for storing user profiles with PII data",
+  "main": "prof.js",
+  "scripts": {
+    "start": "node prof.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "planetnineisaspaceship",
+  "type": "module",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1",
+    "node-fetch": "^3.3.2",
+    "sessionless-node": "latest",
+    "sharp": "^0.32.6",
+    "uuid": "^9.0.1"
+  }
+}

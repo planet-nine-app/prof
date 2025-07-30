@@ -1,0 +1,22 @@
+{
+  "name": "prof-tests",
+  "version": "0.0.1",
+  "description": "Tests for Prof service",
+  "type": "module",
+  "scripts": {
+    "test": "mocha --timeout 10000 *.js",
+    "test-server": "mocha --timeout 10000 server.js",
+    "test-client": "mocha --timeout 10000 client.js"
+  },
+  "devDependencies": {
+    "mocha": "^10.2.0",
+    "chai": "^4.3.7",
+    "supertest": "^6.3.3"
+  },
+  "dependencies": {
+    "prof-js": "file:../../src/client/javascript",
+    "sessionless-node": "latest",
+    "fs": "0.0.1-security",
+    "path": "^0.12.7"
+  }
+}
