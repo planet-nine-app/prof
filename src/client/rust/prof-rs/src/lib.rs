@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use thiserror::Error;
 use uuid::Uuid;
 
-pub use sessionless::Sessionless;
+pub use sessionless::{Sessionless, hex::IntoHex};
 
 #[derive(Error, Debug)]
 pub enum ProfError {
@@ -102,14 +102,16 @@ impl ProfClient {
             .to_string();
 
         let hash = Uuid::new_v4().to_string();
-        let signature = sessionless.sign(&sessionless.uuid, &timestamp)
-            .map_err(|e| ProfError::Auth(format!("Failed to sign: {}", e)))?;
+        let uuid = sessionless.public_key().to_hex();
+        
+        // Create message to sign from timestamp
+        let signature = sessionless.sign(&timestamp);
 
         let mut params = HashMap::new();
-        params.insert("uuid".to_string(), sessionless.uuid.clone());
+        params.insert("uuid".to_string(), uuid);
         params.insert("timestamp".to_string(), timestamp);
         params.insert("hash".to_string(), hash);
-        params.insert("signature".to_string(), signature);
+        params.insert("signature".to_string(), signature.to_hex());
 
         Ok(params)
     }
@@ -149,7 +151,32 @@ impl ProfClient {
             .await?;
 
         let status = response.status();
-        let response_data: ProfileResponse = response.json().await?;
+        let response_text = response.text().await?;
+        
+        // Try to parse as ProfileResponse first (successful response)
+        let response_data: ProfileResponse = if let Ok(parsed) = serde_json::from_str(&response_text) {
+            parsed
+        } else {
+            // If that fails, try to parse as a simple error response
+            if let Ok(error_obj) = serde_json::from_str::<serde_json::Value>(&response_text) {
+                if let Some(error_msg) = error_obj.get("error").and_then(|e| e.as_str()) {
+                    ProfileResponse {
+                        success: false,
+                        profile: None,
+                        error: Some(error_msg.to_string()),
+                        details: error_obj.get("details")
+                            .and_then(|d| d.as_array())
+                            .map(|arr| arr.iter()
+                                .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                                .collect()),
+                    }
+                } else {
+                    return Err(ProfError::Service(format!("Invalid response format: {}", response_text)));
+                }
+            } else {
+                return Err(ProfError::Service(format!("Could not parse response: {}", response_text)));
+            }
+        };
 
         if !response_data.success {
             return match status.as_u16() {
@@ -203,7 +230,32 @@ impl ProfClient {
             .await?;
 
         let status = response.status();
-        let response_data: ProfileResponse = response.json().await?;
+        let response_text = response.text().await?;
+        
+        // Try to parse as ProfileResponse first (successful response)
+        let response_data: ProfileResponse = if let Ok(parsed) = serde_json::from_str(&response_text) {
+            parsed
+        } else {
+            // If that fails, try to parse as a simple error response
+            if let Ok(error_obj) = serde_json::from_str::<serde_json::Value>(&response_text) {
+                if let Some(error_msg) = error_obj.get("error").and_then(|e| e.as_str()) {
+                    ProfileResponse {
+                        success: false,
+                        profile: None,
+                        error: Some(error_msg.to_string()),
+                        details: error_obj.get("details")
+                            .and_then(|d| d.as_array())
+                            .map(|arr| arr.iter()
+                                .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                                .collect()),
+                    }
+                } else {
+                    return Err(ProfError::Service(format!("Invalid response format: {}", response_text)));
+                }
+            } else {
+                return Err(ProfError::Service(format!("Could not parse response: {}", response_text)));
+            }
+        };
 
         if !response_data.success {
             return match status.as_u16() {
@@ -244,7 +296,32 @@ impl ProfClient {
             .await?;
 
         let status = response.status();
-        let response_data: ProfileResponse = response.json().await?;
+        let response_text = response.text().await?;
+        
+        // Try to parse as ProfileResponse first (successful response)
+        let response_data: ProfileResponse = if let Ok(parsed) = serde_json::from_str(&response_text) {
+            parsed
+        } else {
+            // If that fails, try to parse as a simple error response
+            if let Ok(error_obj) = serde_json::from_str::<serde_json::Value>(&response_text) {
+                if let Some(error_msg) = error_obj.get("error").and_then(|e| e.as_str()) {
+                    ProfileResponse {
+                        success: false,
+                        profile: None,
+                        error: Some(error_msg.to_string()),
+                        details: error_obj.get("details")
+                            .and_then(|d| d.as_array())
+                            .map(|arr| arr.iter()
+                                .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                                .collect()),
+                    }
+                } else {
+                    return Err(ProfError::Service(format!("Invalid response format: {}", response_text)));
+                }
+            } else {
+                return Err(ProfError::Service(format!("Could not parse response: {}", response_text)));
+            }
+        };
 
         if !response_data.success {
             return match status.as_u16() {

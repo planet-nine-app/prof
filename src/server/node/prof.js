@@ -211,7 +211,7 @@ app.use((error, req, res, next) => {
   res.status(500).send({ error: 'Internal server error' });
 });
 
-const PORT = config.port || 3007;
+const PORT = config.port || 3008;
 app.listen(PORT, () => {
   console.log(`Prof service listening on port ${PORT}`);
   console.log('Ready to handle user profiles with PII data');

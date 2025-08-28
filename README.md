@@ -59,11 +59,11 @@ Prof provides CRUD operations for user profiles including:
    node prof.js
    ```
 
-   The server will start on port 3007 by default.
+   The server will start on port 3008 by default.
 
 3. **Verify installation**:
    ```bash
-   curl http://localhost:3007/health
+   curl http://localhost:3008/health
    ```
 
 ### Basic Usage
@@ -80,7 +80,7 @@ import prof from 'prof-js';
 import sessionless from 'sessionless-node';
 
 // Create client and set up authentication
-const profClient = prof.createClient('http://localhost:3007');
+const profClient = prof.createClient('http://localhost:3008');
 const keys = sessionless.generateKeys();
 profClient.setKeys(keys);
 
@@ -113,7 +113,7 @@ use std::collections::HashMap;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create client and set up authentication
     let sessionless = Sessionless::new()?;
-    let client = ProfClient::new("http://localhost:3007".to_string())
+    let client = ProfClient::new("http://localhost:3008".to_string())
         .with_sessionless(sessionless);
 
     // Create a profile using builder pattern
@@ -198,7 +198,7 @@ prof/
 cd prof/test/mocha
 npm install
 
-# Run all tests (requires server running on localhost:3007)
+# Run all tests (requires server running on localhost:3008)
 npm test
 
 # Run specific test suites
@@ -212,7 +212,7 @@ Edit `src/server/node/config/local.js`:
 
 ```javascript
 export default {
-  port: 3007,
+  port: 3008,
   allowedTimeDifference: 300000, // 5 minutes
   maxImageSize: 5 * 1024 * 1024, // 5MB
   allowedImageTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
@@ -290,7 +290,7 @@ Prof works seamlessly with web applications:
 
 ```html
 <!-- Display profile image -->
-<img src="http://localhost:3007/user/USER_UUID/profile/image?timestamp=...&signature=..." 
+<img src="http://localhost:3008/user/USER_UUID/profile/image?timestamp=...&signature=..." 
      alt="Profile Image" />
 
 <!-- Or use client SDK -->
@@ -331,7 +331,7 @@ Prof works seamlessly with web applications:
 1. **Environment variables**:
    ```bash
    export NODE_ENV=production
-   export PROF_PORT=3007
+   export PROF_PORT=3008
    export PROF_DATA_PATH=/var/prof/data
    export PROF_MAX_IMAGE_SIZE=5242880
    ```
@@ -339,7 +339,7 @@ Prof works seamlessly with web applications:
 2. **Reverse proxy** (nginx example):
    ```nginx
    location /prof/ {
-       proxy_pass http://localhost:3007/;
+       proxy_pass http://localhost:3008/;
        proxy_set_header Host $host;
        proxy_set_header X-Real-IP $remote_addr;
        client_max_body_size 10M;
@@ -369,7 +369,7 @@ Prof works seamlessly with web applications:
 **Server won't start**:
 ```bash
 # Check port availability
-lsof -i :3007
+lsof -i :3008
 
 # Check file permissions
 ls -la data/profiles/
@@ -378,7 +378,7 @@ ls -la data/profiles/
 **Image upload fails**:
 ```bash
 # Check file size limits
-curl -F "image=@large-image.jpg" http://localhost:3007/user/test/profile
+curl -F "image=@large-image.jpg" http://localhost:3008/user/test/profile
 
 # Check image type
 file image.jpg  # Should show valid image format
@@ -398,7 +398,7 @@ console.log('Generated signature:', signature);
 **Tests failing**:
 ```bash
 # Ensure server is running
-curl http://localhost:3007/health
+curl http://localhost:3008/health
 
 # Check test dependencies
 cd test/mocha && npm install
@@ -421,7 +421,7 @@ Monitor Prof service health:
 
 ```bash
 # Basic health check
-curl http://localhost:3007/health
+curl http://localhost:3008/health
 
 # Check specific functionality
 curl -X POST http://localhost:3007/magic/spell/getProfileSummary \
