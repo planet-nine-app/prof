@@ -1,6 +1,5 @@
 import db from '../persistence/db.js';
 import config from '../../config/local.js';
-import sharp from 'sharp';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 
@@ -48,27 +47,19 @@ const profiles = {
     return errors;
   },
 
-  // Process and resize image
+  // Process and save image (without Sharp - saves original)
   async processImage(imageBuffer, originalName) {
     try {
       // Generate unique filename
       const ext = path.extname(originalName).toLowerCase();
       const filename = `${uuidv4()}${ext}`;
       
-      // Process image with sharp
-      const processedBuffer = await sharp(imageBuffer)
-        .resize(config.imageResolution.maxWidth, config.imageResolution.maxHeight, {
-          fit: 'inside',
-          withoutEnlargement: true
-        })
-        .jpeg({ quality: 85 }) // Convert to JPEG for consistency
-        .toBuffer();
-      
-      // Save processed image
-      const saved = await db.saveImage(filename.replace(ext, '.jpg'), processedBuffer);
+      // Save original image without processing
+      // Note: In a production environment, you'd want proper image validation
+      const saved = await db.saveImage(filename, imageBuffer);
       
       if (saved) {
-        return filename.replace(ext, '.jpg');
+        return filename;
       }
       
       return null;

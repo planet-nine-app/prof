@@ -16,7 +16,6 @@
     "multer": "^1.4.5-lts.1",
     "node-fetch": "^3.3.2",
     "sessionless-node": "latest",
-    "sharp": "^0.32.6",
     "uuid": "^9.0.1"
   }
 }
