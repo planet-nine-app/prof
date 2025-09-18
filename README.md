@@ -142,6 +142,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 | `GET` | `/user/:uuid/profile` | Get profile data |
 | `DELETE` | `/user/:uuid/profile` | Delete profile |
 | `GET` | `/user/:uuid/profile/image` | Get profile image |
+| `GET` | `/profiles` | List all profiles (with optional tag filtering) |
 | `GET` | `/health` | Health check |
 | `POST` | `/magic/spell/:spellName` | Execute MAGIC spell |
 
@@ -168,6 +169,45 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 - **Additional fields**: Max 20 fields, max 1000 characters per string field
 - **Images**: Max 5MB, JPEG/PNG/WebP, auto-resized to 1024x1024
 - **Request timestamp**: Must be within configured time window (default: 5 minutes)
+
+### Profile Listing and Tag Filtering
+
+The `/profiles` endpoint allows listing all profiles with optional tag-based filtering:
+
+```bash
+# Get all profiles
+curl -X GET http://localhost:3008/profiles
+
+# Filter profiles by tags (comma-separated)
+curl -X GET "http://localhost:3008/profiles?tags=author,writer"
+
+# Filter by genres
+curl -X GET "http://localhost:3008/profiles?tags=fantasy,sci-fi"
+```
+
+**Response format:**
+```json
+{
+  "success": true,
+  "profiles": [
+    {
+      "uuid": "user-uuid-1",
+      "name": "Sarah Mitchell",
+      "email": "sarah@example.com",
+      "genres": ["Fantasy", "Adventure"],
+      "bio": "Award-winning fantasy author...",
+      "createdAt": "2025-01-29T10:30:00.000Z"
+    }
+  ],
+  "count": 1,
+  "tags": ["fantasy"]
+}
+```
+
+**Tag Matching:**
+- Searches in `tags` and `genres` fields
+- Case-insensitive partial matching
+- Profile matches if it has ANY of the requested tags
 
 ## Development
 

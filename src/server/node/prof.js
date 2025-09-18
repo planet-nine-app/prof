@@ -67,7 +67,7 @@ const validateSignature = async (req, res, next) => {
 app.post('/user/:uuid/profile', upload.single('image'), async (req, res) => {
   try {
     const uuid = req.params.uuid;
-    const profileData = JSON.parse(req.body.profileData || '{}');
+    const profileData = req.body.profileData;
     const imageBuffer = req.file ? req.file.buffer : null;
     const originalImageName = req.file ? req.file.originalname : null;
     
@@ -189,10 +189,37 @@ app.post('/magic/spell/:spellName', async (req, res) => {
   }
 });
 
+// List all profiles endpoint (with optional tag filtering)
+app.get('/profiles', async (req, res) => {
+  try {
+    console.log('Prof service received request to list profiles');
+
+    // Get optional tags from query parameters
+    const tags = req.query.tags ? req.query.tags.split(',').map(tag => tag.trim()) : null;
+
+    const result = await profiles.listProfiles(tags);
+
+    if (result.error) {
+      return res.status(500).send({ error: result.error });
+    }
+
+    console.log(`Prof service returning ${result.profiles.length} profiles${tags ? ` with tags: ${tags.join(', ')}` : ''}`);
+    res.send({
+      success: true,
+      profiles: result.profiles,
+      count: result.profiles.length,
+      tags: tags
+    });
+  } catch (err) {
+    console.error('Error in profiles endpoint:', err);
+    res.status(500).send({ error: 'Internal server error' });
+  }
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.send({ 
-    status: 'healthy', 
+  res.send({
+    status: 'healthy',
     service: 'prof',
     version: '0.0.1',
     timestamp: new Date().toISOString()

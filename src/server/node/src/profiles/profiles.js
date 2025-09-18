@@ -110,7 +110,14 @@ const profiles = {
         }
         return { error: 'Failed to save profile' };
       }
-      
+
+      // Add profile to tag indexes if it has tags
+      if (savedProfile.tags && Array.isArray(savedProfile.tags)) {
+        for (const tag of savedProfile.tags) {
+          await db.addProfileToTag(tag, savedProfile);
+        }
+      }
+
       return { success: true, profile: savedProfile };
     } catch (err) {
       console.error('Error creating profile:', err);
@@ -162,7 +169,23 @@ const profiles = {
       if (!savedProfile) {
         return { error: 'Failed to update profile' };
       }
-      
+
+      // Update tag indexes - remove from old tags and add to new tags
+      const oldTags = existingProfile.tags || [];
+      const newTags = savedProfile.tags || [];
+
+      // Remove from old tags that are no longer present
+      for (const oldTag of oldTags) {
+        if (!newTags.includes(oldTag)) {
+          await db.removeProfileFromTag(oldTag, uuid);
+        }
+      }
+
+      // Add to new tags
+      for (const newTag of newTags) {
+        await db.addProfileToTag(newTag, savedProfile);
+      }
+
       return { success: true, profile: savedProfile };
     } catch (err) {
       console.error('Error updating profile:', err);
@@ -193,12 +216,19 @@ const profiles = {
         return { error: 'Profile not found' };
       }
       
+      // Remove profile from all tag indexes
+      if (existingProfile.tags && Array.isArray(existingProfile.tags)) {
+        for (const tag of existingProfile.tags) {
+          await db.removeProfileFromTag(tag, uuid);
+        }
+      }
+
       // Delete profile and associated image
       const deleted = await db.deleteProfile(uuid);
       if (!deleted) {
         return { error: 'Failed to delete profile' };
       }
-      
+
       return { success: true };
     } catch (err) {
       console.error('Error deleting profile:', err);
@@ -222,6 +252,18 @@ const profiles = {
       return { success: true, image: imageBuffer, filename: profile.imageFilename };
     } catch (err) {
       console.error('Error getting profile image:', err);
+      return { error: 'Internal server error' };
+    }
+  },
+
+  // List all profiles with optional tag filtering (now optimized)
+  async listProfiles(tags = null) {
+    try {
+      // Use optimized tag lookup from db layer
+      const profiles = await db.listProfiles(tags);
+      return { success: true, profiles };
+    } catch (err) {
+      console.error('Error listing profiles:', err);
       return { error: 'Internal server error' };
     }
   }

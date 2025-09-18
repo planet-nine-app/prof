@@ -109,12 +109,97 @@ const db = {
     }
   },
 
-  // List all profiles (for admin/testing purposes)
-  async listProfiles() {
+  // Tag operations
+  async addProfileToTag(tag, profile) {
     try {
+      const tagPath = path.join(config.dataPath, `tag_${tag}.json`);
+      let tagData = {};
+
+      // Get existing tag file or create new object
+      if (fs.existsSync(tagPath)) {
+        const data = fs.readFileSync(tagPath, 'utf8');
+        tagData = JSON.parse(data);
+      }
+
+      // Set property with uuid as key and profile as value
+      tagData[profile.uuid] = profile;
+
+      // Save the tag file
+      fs.writeFileSync(tagPath, JSON.stringify(tagData, null, 2));
+      return true;
+    } catch (err) {
+      console.error('Error adding profile to tag:', err);
+      return false;
+    }
+  },
+
+  async removeProfileFromTag(tag, uuid) {
+    try {
+      const tagPath = path.join(config.dataPath, `tag_${tag}.json`);
+
+      if (!fs.existsSync(tagPath)) {
+        return true; // Tag doesn't exist, nothing to remove
+      }
+
+      const data = fs.readFileSync(tagPath, 'utf8');
+      const tagData = JSON.parse(data);
+
+      // Remove the profile
+      delete tagData[uuid];
+
+      // Save the updated tag file
+      fs.writeFileSync(tagPath, JSON.stringify(tagData, null, 2));
+      return true;
+    } catch (err) {
+      console.error('Error removing profile from tag:', err);
+      return false;
+    }
+  },
+
+  async getProfilesByTag(tag) {
+    try {
+      const tagPath = path.join(config.dataPath, `tag_${tag}.json`);
+
+      if (!fs.existsSync(tagPath)) {
+        return []; // Tag doesn't exist, return empty array
+      }
+
+      const data = fs.readFileSync(tagPath, 'utf8');
+      const tagData = JSON.parse(data);
+
+      // Return array of profiles
+      return Object.values(tagData);
+    } catch (err) {
+      console.error('Error getting profiles by tag:', err);
+      return [];
+    }
+  },
+
+  // List all profiles (for admin/testing purposes or when no tag filter)
+  async listProfiles(tags = null) {
+    try {
+      // If tags are specified, use the optimized tag lookup
+      if (tags && tags.length > 0) {
+        const allTaggedProfiles = [];
+        const seenUuids = new Set();
+
+        for (const tag of tags) {
+          const profiles = await this.getProfilesByTag(tag);
+          profiles.forEach(profile => {
+            if (!seenUuids.has(profile.uuid)) {
+              seenUuids.add(profile.uuid);
+              allTaggedProfiles.push(profile);
+            }
+          });
+        }
+
+        return allTaggedProfiles;
+      }
+
+      // Fallback to scanning all profile files (original behavior)
       const files = fs.readdirSync(config.dataPath);
       const profiles = files
-        .filter(file => file.endsWith('.json'))
+        .filter(file => file.endsWith('.json') && !file.startsWith('tag_'))
         .map(file => {
           const uuid = file.replace('.json', '');
           const data = fs.readFileSync(path.join(config.dataPath, file), 'utf8');
