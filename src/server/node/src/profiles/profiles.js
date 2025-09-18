@@ -4,48 +4,6 @@ import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 
 const profiles = {
-  // Validate profile data
-  validateProfile(profileData) {
-    const errors = [];
-    
-    // Required fields
-    if (!profileData.name || typeof profileData.name !== 'string') {
-      errors.push('Name is required and must be a string');
-    } else if (profileData.name.length > config.profileLimits.maxNameLength) {
-      errors.push(`Name must be less than ${config.profileLimits.maxNameLength} characters`);
-    }
-    
-    if (!profileData.email || typeof profileData.email !== 'string') {
-      errors.push('Email is required and must be a string');
-    } else if (profileData.email.length > config.profileLimits.maxEmailLength) {
-      errors.push(`Email must be less than ${config.profileLimits.maxEmailLength} characters`);
-    }
-    
-    // Email format validation (basic)
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (profileData.email && !emailRegex.test(profileData.email)) {
-      errors.push('Email must be in valid format');
-    }
-    
-    // Check additional fields
-    const additionalFields = Object.keys(profileData).filter(
-      key => !['name', 'email', 'image', 'imageFilename'].includes(key)
-    );
-    
-    if (additionalFields.length > config.profileLimits.maxFields) {
-      errors.push(`Too many additional fields. Maximum ${config.profileLimits.maxFields} allowed`);
-    }
-    
-    // Validate additional field lengths
-    for (const field of additionalFields) {
-      const value = profileData[field];
-      if (typeof value === 'string' && value.length > config.profileLimits.maxFieldLength) {
-        errors.push(`Field '${field}' exceeds maximum length of ${config.profileLimits.maxFieldLength} characters`);
-      }
-    }
-    
-    return errors;
-  },
 
   // Process and save image (without Sharp - saves original)
   async processImage(imageBuffer, originalName) {
@@ -78,11 +36,6 @@ const profiles = {
         return { error: 'Profile already exists' };
       }
       
-      // Validate profile data
-      const validationErrors = this.validateProfile(profileData);
-      if (validationErrors.length > 0) {
-        return { error: 'Validation failed', details: validationErrors };
-      }
       
       // Process image if provided
       let imageFilename = null;
@@ -134,11 +87,6 @@ const profiles = {
         return { error: 'Profile not found' };
       }
       
-      // Validate new profile data
-      const validationErrors = this.validateProfile(profileData);
-      if (validationErrors.length > 0) {
-        return { error: 'Validation failed', details: validationErrors };
-      }
       
       // Process new image if provided
       let imageFilename = existingProfile.imageFilename;
